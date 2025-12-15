@@ -1,0 +1,20 @@
+# Example Configuration Template
+# Copy this file to application-local.properties and fill in your actual values
+# OR set these as environment variables
+
+spring.application.name=WeatherDashboard
+
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/weatherdb
+spring.datasource.username=postgres
+spring.datasource.password=YOUR_DATABASE_PASSWORD_HERE
+
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+# API Keys - Get these from:
+# - WeatherAPI: https://www.weatherapi.com/
+# - OpenWeatherMap: https://openweathermap.org/api
+weatherapi.key=YOUR_WEATHER_API_KEY_HERE
+openweather.key=YOUR_OPENWEATHER_API_KEY_HERE
+

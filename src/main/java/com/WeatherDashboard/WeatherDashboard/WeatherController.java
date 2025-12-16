@@ -1,6 +1,7 @@
 package com.WeatherDashboard.WeatherDashboard;
 
 import com.WeatherDashboard.WeatherDashboard.dto.WeatherDTO;
+import com.WeatherDashboard.WeatherDashboard.dto.ForecastDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +67,46 @@ public class WeatherController {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Could not fetch nearby cities: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    @GetMapping("/forecast")
+    public ResponseEntity<?> getForecast(
+            @RequestParam String city,
+            @RequestParam(defaultValue = "3") int days) {
+        try {
+            if (days < 1 || days > 4) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Days parameter must be between 1 and 4");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+            ForecastDTO forecast = weatherService.getForecast(city, days);
+            return ResponseEntity.ok(forecast);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to fetch forecast for " + city + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        }
+    }
+
+    @GetMapping("/forecast/coords")
+    public ResponseEntity<?> getForecastByCoords(
+            @RequestParam double lat,
+            @RequestParam double lon,
+            @RequestParam(defaultValue = "3") int days) {
+        try {
+            if (days < 1 || days > 4) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Days parameter must be between 1 and 4");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+            String location = lat + "," + lon;
+            ForecastDTO forecast = weatherService.getForecast(location, days);
+            return ResponseEntity.ok(forecast);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Failed to fetch forecast for coordinates: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
 

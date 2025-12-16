@@ -1,6 +1,7 @@
 package com.WeatherDashboard.WeatherDashboard;
 
 import com.WeatherDashboard.WeatherDashboard.dto.WeatherDTO;
+import com.WeatherDashboard.WeatherDashboard.dto.ForecastDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -13,6 +14,7 @@ public class WeatherService {
     @Value("${weatherapi.key}")
     private String API_KEY;
     private final String BASE_URL = "http://api.weatherapi.com/v1/current.json";
+    private final String FORECAST_URL = "http://api.weatherapi.com/v1/forecast.json";
 
     @Value("${openweather.key}")
     private String GEO_CODING;
@@ -215,6 +217,85 @@ public class WeatherService {
             return filteredResponse;
         } catch (Exception e) {
             throw new RuntimeException("Could not fetch nearby cities", e);
+        }
+    }
+
+    public ForecastDTO getForecast(String city, int days) {
+        String url = FORECAST_URL + "?key=" + API_KEY + "&q=" + city + "&days=" + days + "&aqi=no&alerts=no";
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            Map<String, Object> location = (Map<String, Object>) response.get("location");
+            Map<String, Object> forecast = (Map<String, Object>) response.get("forecast");
+            
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> forecastDays = (List<Map<String, Object>>) forecast.get("forecastday");
+            
+            List<ForecastDTO.ForecastDay> forecastDayList = forecastDays.stream()
+                .map(day -> {
+                    Map<String, Object> dayData = (Map<String, Object>) day.get("day");
+                    Map<String, Object> condition = (Map<String, Object>) dayData.get("condition");
+                    
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> hours = (List<Map<String, Object>>) day.get("hour");
+                    
+                    List<ForecastDTO.HourForecast> hourList = hours.stream()
+                        .map(hour -> {
+                            Map<String, Object> hourCondition = (Map<String, Object>) hour.get("condition");
+                            return new ForecastDTO.HourForecast(
+                                (String) hour.get("time"),
+                                ((Number) hour.get("temp_f")).doubleValue(),
+                                ((Number) hour.get("temp_c")).doubleValue(),
+                                new ForecastDTO.Condition(
+                                    (String) hourCondition.get("text"),
+                                    (String) hourCondition.get("icon"),
+                                    ((Number) hourCondition.get("code")).intValue()
+                                ),
+                                ((Number) hour.get("wind_mph")).doubleValue(),
+                                ((Number) hour.get("humidity")).intValue(),
+                                ((Number) hour.get("chance_of_rain")).intValue(),
+                                ((Number) hour.get("chance_of_snow")).intValue()
+                            );
+                        })
+                        .collect(Collectors.toList());
+                    
+                    return new ForecastDTO.ForecastDay(
+                        (String) day.get("date"),
+                        new ForecastDTO.DayForecast(
+                            ((Number) dayData.get("maxtemp_f")).doubleValue(),
+                            ((Number) dayData.get("maxtemp_c")).doubleValue(),
+                            ((Number) dayData.get("mintemp_f")).doubleValue(),
+                            ((Number) dayData.get("mintemp_c")).doubleValue(),
+                            ((Number) dayData.get("avgtemp_f")).doubleValue(),
+                            ((Number) dayData.get("avgtemp_c")).doubleValue(),
+                            ((Number) dayData.get("maxwind_mph")).doubleValue(),
+                            ((Number) dayData.get("totalprecip_in")).doubleValue(),
+                            ((Number) dayData.get("totalprecip_mm")).doubleValue(),
+                            ((Number) dayData.get("avghumidity")).intValue(),
+                            new ForecastDTO.Condition(
+                                (String) condition.get("text"),
+                                (String) condition.get("icon"),
+                                ((Number) condition.get("code")).intValue()
+                            ),
+                            ((Number) dayData.get("daily_chance_of_rain")).intValue(),
+                            ((Number) dayData.get("daily_chance_of_snow")).intValue()
+                        ),
+                        hourList
+                    );
+                })
+                .collect(Collectors.toList());
+            
+            return new ForecastDTO(
+                (String) location.get("name"),
+                (String) location.get("region"),
+                (String) location.get("country"),
+                ((Number) location.get("lat")).doubleValue(),
+                ((Number) location.get("lon")).doubleValue(),
+                forecastDayList
+            );
+        } catch(Exception e) {
+            throw new RuntimeException("Failed to fetch forecast for: " + city, e);
         }
     }
 }

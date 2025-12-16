@@ -12,6 +12,7 @@ import SearchBar from "./components/SearchBar";
 import NearbyCities from "./components/NearbyCities";
 import SavedCities from "./components/SavedCities";
 import WeatherDisplay from "./components/WeatherDisplay";
+import Forecast from "./components/Forecast";
 import { getBackgroundClass } from "./utils/weatherHelpers";
 
 export default function App() {
@@ -370,6 +371,7 @@ export default function App() {
           {/* Main weather display */}
           <main className="main-content">
             <WeatherDisplay selectedCity={selectedCity} />
+            <Forecast selectedCity={selectedCity} />
           </main>
         </div>
       </div>

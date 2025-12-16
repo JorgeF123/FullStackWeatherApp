@@ -157,3 +157,56 @@ export async function deleteSavedCity(id) {
     throw new Error(error.error || `HTTP ${response.status}: Failed to delete city`);
   }
 }
+
+/**
+ * Fetches weather forecast for a given city
+ * @param {string} cityName - Name of the city to get forecast for
+ * @param {number} days - Number of days (1-3, default 3)
+ * @returns {Promise<Object>} Forecast data object
+ */
+export async function fetchForecast(cityName, days = 3) {
+  if (!cityName || !cityName.trim()) {
+    throw new Error('City name cannot be empty');
+  }
+  if (days < 1 || days > 4) {
+    throw new Error('Days must be between 1 and 4');
+  }
+
+  const url = `${API_BASE_URL}/weather/forecast?city=${encodeURIComponent(cityName.trim())}&days=${days}`;
+  
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `HTTP ${response.status}: Failed to fetch forecast`);
+  }
+  
+  return await response.json();
+}
+
+/**
+ * Fetches weather forecast for coordinates
+ * @param {number} lat - Latitude
+ * @param {number} lon - Longitude
+ * @param {number} days - Number of days (1-3, default 3)
+ * @returns {Promise<Object>} Forecast data object
+ */
+export async function fetchForecastByCoords(lat, lon, days = 3) {
+  if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
+    throw new Error('Invalid coordinates provided');
+  }
+  if (days < 1 || days > 4) {
+    throw new Error('Days must be between 1 and 4');
+  }
+
+  const url = `${API_BASE_URL}/weather/forecast/coords?lat=${lat}&lon=${lon}&days=${days}`;
+  
+  const response = await fetch(url);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || `HTTP ${response.status}: Failed to fetch forecast`);
+  }
+  
+  return await response.json();
+}

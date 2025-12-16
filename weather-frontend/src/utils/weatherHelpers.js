@@ -30,6 +30,9 @@ export function getWeatherIcon(condition) {
     if (!condition) return "bg-default";
     const c = condition.toLowerCase();
     if (c.includes("sun") || c.includes("clear")) return "bg-sunny";
+    if (c.includes("mist")) return "bg-mist";
+    // Check for "partly cloudy" first to give it a darker, more cloudy appearance
+    if (c.includes("partly") && c.includes("cloud")) return "bg-partly-cloudy";
     if (c.includes("cloud")) return "bg-cloudy";
     if (c.includes("rain")) return "bg-rainy";
     return "bg-default";
